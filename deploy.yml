@@ -1,0 +1,35 @@
+---
+- name: Deploy Simple Web Service with Docker
+  hosts: localhost
+  become: yes
+  
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Run Nginx container
+      docker_container:
+        name: ansible-web-app
+        image: nginx:alpine
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:80"
+
+    - name: Show success message
+      debug:
+        msg: "Deployment complete! Access at http://localhost:8080"
